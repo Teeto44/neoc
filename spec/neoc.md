@@ -1084,7 +1084,7 @@ fn check_value(i32 value) i32 {
 Programs may optionally define an entry point function called `main` (lowercase). When present, it must return an `i32` value representing the program's exit code.
 
 ```neoc
-// Entry point must be lowercase for it to work properly 
+// Entry point must be lowercase for it to work properly
 fn main() i32 {
     return 0;
 }
@@ -1100,17 +1100,13 @@ Here is a complete example program demonstrating various NeoC features:
 /// Entry point of the program
 fn main() i32 {
     i32 result = fibonacci(10);
-	
-		if (is_prime(abs(result))) {
+
+	if (is_prime(abs(result))) {
 		    return 1;
     }
-		else {
+	else {
         return 0;
     }
-
-
-
-    return -1;
 }
 
 /// Calculates the nth Fibonacci number

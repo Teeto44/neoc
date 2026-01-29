@@ -1,0 +1,73 @@
+# Build directories
+build/
+out/
+cmake-build-*/
+build-*/
+build_*/
+debug/
+release/
+bin/
+lib/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+compile_commands.json
+CMakeScripts/
+CPackConfig.cmake
+CPackSourceConfig.cmake
+
+# Compiler outputs
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.map
+*.dSYM/
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Coverage / profiling
+*.gcno
+*.gcda
+*.gcov
+*.profraw
+*.profdata
+
+# IDEs / Editors
+.idea/
+.vscode/
+.vs/
+.zed/
+*.code-workspace
+
+# OS-specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Tools / caches
+.cache/
+.tmp/
+tmp/
+*.log
