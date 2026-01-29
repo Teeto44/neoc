@@ -6,14 +6,13 @@
 
 typedef struct Lexer {
     char* src;
+    size_t pos;
     size_t line;
     size_t column;
 } Lexer;
 
-Lexer lexer;
-
-void lexer_open_file(const char *filepath);
-void lexer_close_file(void);
+void lexer_open_src(const char* src);
+void lexer_close_src(void);
 
 Token* get_next_token(void);
 

@@ -5,6 +5,9 @@
 #include <stdlib.h>
 
 typedef enum TokenType {
+    // Default
+    TOK_INVALID,
+
     // Keywords
     TOK_FN,
     TOK_RETURN,
@@ -75,7 +78,6 @@ typedef enum TokenType {
     // Misc
     TOK_IDENT,
     TOK_EOF,
-    TOK_INVALID,
 } TokenType;
 
 typedef struct Token {

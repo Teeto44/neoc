@@ -1101,10 +1101,9 @@ Here is a complete example program demonstrating various NeoC features:
 fn main() i32 {
     i32 result = fibonacci(10);
 
-	if (is_prime(abs(result))) {
-		    return 1;
-    }
-	else {
+    if (is_prime(abs(result))) {
+            return 1;
+    } else {
         return 0;
     }
 }
