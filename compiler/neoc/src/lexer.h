@@ -6,6 +6,7 @@
 
 typedef struct Lexer {
     char* src;
+    size_t srcLen;
     size_t pos;
     size_t line;
     size_t column;
