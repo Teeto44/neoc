@@ -93,7 +93,7 @@ static inline Token* create_token(TokenType type, char* ident,
     Token* token = malloc(sizeof(Token));
     if (token == NULL) {
         fprintf(stderr, "Error: Memory allocation failed for token\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     token->type = type;

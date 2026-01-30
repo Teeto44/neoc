@@ -12,9 +12,10 @@ typedef struct Lexer {
     size_t column;
 } Lexer;
 
-void lexer_open_src(const char* src);
-void lexer_close_src(void);
+/// Takes ownership of the src code, expects it to be null-terminated.
+Lexer* create_lexer(char* src);
+void destroy_lexer(Lexer* lexer);
 
-Token* get_next_token(void);
+Token* get_next_token(Lexer* lexer);
 
 #endif // LEXER_H
