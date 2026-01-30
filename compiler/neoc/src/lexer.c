@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <ctype.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -9,6 +10,8 @@
 static char peek(Lexer* lexer, size_t offset);
 static void advance(Lexer* lexer);
 static void skip_whitespace(Lexer* lexer);
+static char* read_identifier(Lexer* lexer);
+static TokenType get_ident_type(const char* ident);
 
 Lexer* create_lexer(char* src) {
     if (src == NULL) {
@@ -58,7 +61,8 @@ Token* get_next_token(Lexer* lexer) {
     skip_whitespace(lexer);
 
     Token* token = NULL;
-    switch (peek(lexer, 0)) {
+    char curChar = peek(lexer, 0);
+    switch (curChar) {
         // EOF
         case '\0':
             token = create_token(TOK_EOF, NULL, lexer->line, lexer->column);
@@ -212,9 +216,21 @@ Token* get_next_token(Lexer* lexer) {
                 lexer->column);
             break;
 
+        // Identifiers, keywords, and literals
         default:
-            token = create_token(TOK_INVALID, NULL, lexer->line,
-                lexer->column);
+            // Identifier
+            if (isalpha(curChar) || curChar == '_') {
+                char* ident = read_identifier(lexer);
+                TokenType type = get_ident_type(ident);
+
+                if (!(type == TOK_IDENT || type == TOK_BOOL_LIT)) {
+                    free(ident);
+                    ident = NULL;
+                }
+
+                token = create_token(type, ident, lexer->line,
+                    lexer->column);
+            }
             break;
     }
 
@@ -295,4 +311,53 @@ static void skip_whitespace(Lexer* lexer) {
         }
         break;
     }
+}
+
+static char* read_identifier(Lexer* lexer) {
+    size_t startPos = lexer->pos;
+    while (isalnum(peek(lexer, 0)) || peek(lexer, 0) == '_') {
+        advance(lexer);
+    }
+
+    size_t len = lexer->pos - startPos;
+    char* ident = malloc(len + 1);
+    memcpy(ident, lexer->src + startPos, len);
+    ident[len] = '\0';
+
+    return ident;
+}
+
+static TokenType get_ident_type(const char* ident) {
+    // The speed of this could be GREATLY improved by using switch
+    // statements however while the syntax is still pretty up in the air
+    // keeping it simple cant hurt, makes it easier to edit.
+
+    //Keywords
+    if (!strcmp(ident, "fn")) return TOK_FN;
+    if (!strcmp(ident, "return")) return TOK_RETURN;
+    if (!strcmp(ident, "mut")) return TOK_MUT;
+    if (!strcmp(ident, "if")) return TOK_IF;
+    if (!strcmp(ident, "else")) return TOK_ELSE;
+
+    // Types
+    if (!strcmp(ident, "i8")) return TOK_I8;
+    if (!strcmp(ident, "i16")) return TOK_I16;
+    if (!strcmp(ident, "i32")) return TOK_I32;
+    if (!strcmp(ident, "i64")) return TOK_I64;
+    if (!strcmp(ident, "i128")) return TOK_I128;
+    if (!strcmp(ident, "u8")) return TOK_U8;
+    if (!strcmp(ident, "u16")) return TOK_U16;
+    if (!strcmp(ident, "u32")) return TOK_U32;
+    if (!strcmp(ident, "u64")) return TOK_U64;
+    if (!strcmp(ident, "u128")) return TOK_U128;
+    if (!strcmp(ident, "f32")) return TOK_F32;
+    if (!strcmp(ident, "f64")) return TOK_F64;
+    if (!strcmp(ident, "bool")) return TOK_BOOL;
+    if (!strcmp(ident, "char")) return TOK_CHAR;
+
+    // Bool literals
+    if (!strcmp(ident, "true")) return TOK_BOOL_LIT;
+    if (!strcmp(ident, "false")) return TOK_BOOL_LIT;
+
+    return TOK_IDENT;
 }

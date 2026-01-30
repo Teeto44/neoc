@@ -9,16 +9,18 @@
 #define TEST_OPS "+ - * / % ++ -- == != < <= > >= && || ! = += -= *=  \
                     /= %="
 #define TEST_PUNCT " ( ) { } , ;"
+#define TEST_WORDS "fn return mut if else i8 i16 i32 i64 i128 u8 u16 \
+                        u32 u64 u128 f32 f64 bool char true false word"
 
 int main(void) {
     // Have to create a heap allocated version of our test src code
     // otherwise it will crash when the lexer tries to free it
-    char* src = malloc(strlen(TEST_PUNCT) + 1);
+    char* src = malloc(strlen(TEST_WORDS) + 1);
     if (src == NULL) {
         fprintf(stderr, "Error: Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    strcpy(src, TEST_PUNCT);
+    strcpy(src, TEST_WORDS);
 
     Lexer* lexer = create_lexer(src);
     if (lexer == NULL) {
@@ -34,7 +36,11 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
 
-        printf("%s\n", token_as_str(token->type));
+        printf("%s", token_as_str(token->type));
+        if (token->type == TOK_IDENT || token->type == TOK_BOOL_LIT) {
+            printf(" (%s)", token->ident);
+        }
+        printf("\n");
 
         if (token->type == TOK_EOF ) {
             free_token(token);
