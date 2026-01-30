@@ -59,6 +59,11 @@ Token* get_next_token(Lexer* lexer) {
 
     Token* token = NULL;
     switch (peek(lexer, 0)) {
+        // EOF
+        case '\0':
+            token = create_token(TOK_EOF, NULL, lexer->line, lexer->column);
+            break;
+
         // Operators
         case '+':
             if (peek(lexer, 1) == '=') {
@@ -180,9 +185,33 @@ Token* get_next_token(Lexer* lexer) {
                     lexer->column);
             }
             break;
-        case '\0':
-            token = create_token(TOK_EOF, NULL, lexer->line, lexer->column);
+
+        // Punctuation
+        case '(':
+            token = create_token(TOK_LPAREN, NULL, lexer->line,
+                lexer->column);
             break;
+        case ')':
+            token = create_token(TOK_RPAREN, NULL, lexer->line,
+                lexer->column);
+            break;
+        case '{':
+            token = create_token(TOK_LBRACE, NULL, lexer->line,
+                lexer->column);
+            break;
+        case '}':
+            token = create_token(TOK_RBRACE, NULL, lexer->line,
+                lexer->column);
+            break;
+        case ',':
+            token = create_token(TOK_COMMA, NULL, lexer->line,
+                lexer->column);
+            break;
+        case ';':
+            token = create_token(TOK_SEMICOLON, NULL, lexer->line,
+                lexer->column);
+            break;
+
         default:
             token = create_token(TOK_INVALID, NULL, lexer->line,
                 lexer->column);

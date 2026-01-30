@@ -35,8 +35,8 @@ typedef enum TokenType {
     // Punctuation
     TOK_LPAREN,
     TOK_RPAREN,
-    TOK_LBRACKET,
-    TOK_RBRACKET,
+    TOK_LBRACE,
+    TOK_RBRACE,
     TOK_COMMA,
     TOK_SEMICOLON,
 
@@ -139,8 +139,8 @@ static inline const char* token_as_str(TokenType type) {
 
         case TOK_LPAREN: return "TOK_LPAREN";
         case TOK_RPAREN: return "TOK_RPAREN";
-        case TOK_LBRACKET: return "TOK_LBRACKET";
-        case TOK_RBRACKET: return "TOK_RBRACKET";
+        case TOK_LBRACE: return "TOK_LBRACE";
+        case TOK_RBRACE: return "TOK_RBRACE";
         case TOK_COMMA: return "TOK_COMMA";
         case TOK_SEMICOLON: return "TOK_SEMICOLON";
 

@@ -8,16 +8,17 @@
 #define TEST_SRC "fn main() i32 {\n return 0; \n} //* Comment Test */"
 #define TEST_OPS "+ - * / % ++ -- == != < <= > >= && || ! = += -= *=  \
                     /= %="
+#define TEST_PUNCT " ( ) { } , ;"
 
 int main(void) {
     // Have to create a heap allocated version of our test src code
     // otherwise it will crash when the lexer tries to free it
-    char* src = malloc(strlen(TEST_OPS) + 1);
+    char* src = malloc(strlen(TEST_PUNCT) + 1);
     if (src == NULL) {
         fprintf(stderr, "Error: Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    strcpy(src, TEST_OPS);
+    strcpy(src, TEST_PUNCT);
 
     Lexer* lexer = create_lexer(src);
     if (lexer == NULL) {
