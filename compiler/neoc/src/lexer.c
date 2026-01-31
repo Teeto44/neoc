@@ -218,6 +218,45 @@ Token* get_next_token(Lexer* lexer) {
                 lexer->column);
             break;
 
+        // Character literal
+        case '\'':
+            advance(lexer);
+
+            if (!isalpha(peek(lexer, 0))) {
+                fprintf(stderr, "Lexer Error: Expected character literal"\
+                    " after '\n");
+                token = create_token(TOK_INVALID, NULL, lexer->line,
+                    lexer->column);
+                return token;
+            }
+
+            char* charLit = malloc(sizeof(char) * 2);
+            if (charLit == NULL) {
+                fprintf(stderr, "Error: Memory allocation failed\n");
+                token = create_token(TOK_INVALID, NULL, lexer->line,
+                    lexer->column);
+                return token;
+            }
+            charLit[0] = peek(lexer, 0);
+            charLit[1] = '\0';
+
+            advance(lexer);
+
+            if (!(peek(lexer, 0) == '\'')) {
+                fprintf(stderr, "Lexer Error: Expected ' after character"\
+                    " literal\n");
+                free(charLit);
+                token = create_token(TOK_INVALID, NULL, lexer->line,
+                    lexer->column);
+                return token;
+            }
+
+            advance(lexer);
+
+            token = create_token(TOK_CHAR_LIT, charLit, lexer->line,
+                lexer->column);
+            break;
+
         // Identifiers, keywords, and literals
         default:
             // Identifier

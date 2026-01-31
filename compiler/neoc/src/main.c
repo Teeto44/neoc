@@ -13,16 +13,17 @@
                         u32 u64 u128 f32 f64 bool char true false word"
 #define TEST_NUM "22000 001 100 222 323 4 5 6 7 8 9 10.0 111.10200323 \
                     25.0000 24.4.4.0 25 .5 . 5. 5.. .. //*"
+#define TEST_CHAR "'a' 'b' 'c' 'b ' 'bc '' ''c'  "
 
 int main(void) {
     // Have to create a heap allocated version of our test src code
     // otherwise it will crash when the lexer tries to free it
-    char* src = malloc(strlen(TEST_NUM) + 1);
+    char* src = malloc(strlen(TEST_CHAR) + 1);
     if (src == NULL) {
         fprintf(stderr, "Error: Memory allocation failed\n");
         exit(EXIT_FAILURE);
     }
-    strcpy(src, TEST_NUM);
+    strcpy(src, TEST_CHAR);
 
     Lexer* lexer = create_lexer(src);
     if (lexer == NULL) {
@@ -39,8 +40,7 @@ int main(void) {
         }
 
         printf("%s", token_as_str(token->type));
-        if (token->type == TOK_IDENT || token->type == TOK_BOOL_LIT ||
-            token->type == TOK_INT_LIT || token->type == TOK_FLOAT_LIT) {
+        if (token->ident != NULL) {
             printf(" (%s)", token->ident);
         }
         printf("\n");
