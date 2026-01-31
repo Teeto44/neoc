@@ -11,7 +11,9 @@ static char peek(Lexer* lexer, size_t offset);
 static void advance(Lexer* lexer);
 static void skip_whitespace(Lexer* lexer);
 static char* read_identifier(Lexer* lexer);
+static char* read_number(Lexer* lexer);
 static TokenType get_ident_type(const char* ident);
+static TokenType get_num_type(const char* num);
 
 Lexer* create_lexer(char* src) {
     if (src == NULL) {
@@ -171,7 +173,7 @@ Token* get_next_token(Lexer* lexer) {
                 token = create_token(TOK_AND, NULL, lexer->line,
                     lexer->column);
             } else {
-                fprintf(stderr, "Expected character '&', got '%c'\n",
+                fprintf(stderr, "Lexer Error: Expected '&' got '%c'\n",
                     peek(lexer, 0));
                 token = create_token(TOK_INVALID, NULL, lexer->line,
                     lexer->column);
@@ -183,7 +185,7 @@ Token* get_next_token(Lexer* lexer) {
                 token = create_token(TOK_OR, NULL, lexer->line,
                     lexer->column);
             } else {
-                fprintf(stderr, "Expected character '|', got '%c'\n",
+                fprintf(stderr, "Lexer Error: Expected '|' got '%c'\n",
                     peek(lexer, 0));
                 token = create_token(TOK_INVALID, NULL, lexer->line,
                     lexer->column);
@@ -221,6 +223,10 @@ Token* get_next_token(Lexer* lexer) {
             // Identifier
             if (isalpha(curChar) || curChar == '_') {
                 char* ident = read_identifier(lexer);
+                if (ident == NULL) {
+                    fprintf(stderr, "Error: Failed to read identifier\n");
+                    return NULL;
+                }
                 TokenType type = get_ident_type(ident);
 
                 if (!(type == TOK_IDENT || type == TOK_BOOL_LIT)) {
@@ -229,6 +235,26 @@ Token* get_next_token(Lexer* lexer) {
                 }
 
                 token = create_token(type, ident, lexer->line,
+                    lexer->column);
+                return token;
+            }
+            // Numeric Literals
+            else if (isdigit(curChar)) {
+                char* num = read_number(lexer);
+                if (num == NULL) {
+                    fprintf(stderr, "Error: Failed to read number\n");
+                    return NULL;
+                }
+                TokenType type = get_num_type(num);
+
+                token = create_token(type, num, lexer->line,
+                    lexer->column);
+                return token;
+            }
+            else {
+                fprintf(stderr, "Lexer Error: Unexpected token '%c'\n",
+                    curChar);
+                token = create_token(TOK_INVALID, NULL, lexer->line,
                     lexer->column);
             }
             break;
@@ -293,7 +319,8 @@ static void skip_whitespace(Lexer* lexer) {
 
             while (true) {
                 if (peek(lexer, 0) == '\0') {
-                    fprintf(stderr, "Error: Unterminated multiline comment\n");
+                    fprintf(stderr, "Lexer Error: Unterminated multiline"\
+                        " comment\n");
                     break;
                 }
 
@@ -321,10 +348,65 @@ static char* read_identifier(Lexer* lexer) {
 
     size_t len = lexer->pos - startPos;
     char* ident = malloc(len + 1);
+    if (ident == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
     memcpy(ident, lexer->src + startPos, len);
     ident[len] = '\0';
 
     return ident;
+}
+
+static char* read_number(Lexer* lexer) {
+    size_t startPos = lexer->pos;
+    bool hasDigits = false;
+    bool hasDigitsBeforeDot = false;
+    bool hasDigitsAfterDot = false;
+
+    // Read integer part
+    while (isdigit(peek(lexer, 0))) {
+        hasDigits = true;
+        hasDigitsBeforeDot = true;
+        advance(lexer);
+    }
+
+    // Check for decimal point
+    if (peek(lexer, 0) == '.') {
+        advance(lexer);
+
+        // Read fractional part
+        while (isdigit(peek(lexer, 0))) {
+            hasDigits = true;
+            hasDigitsAfterDot = true;
+            advance(lexer);
+        }
+
+        // Check for digits on both sides
+        if (!hasDigitsBeforeDot || !hasDigitsAfterDot) {
+            fprintf(stderr, "Lexer Error: Float literal must have digits on"\
+                " both sides of the decimal point\n");
+            return NULL;
+        }
+    }
+
+    // Must have at least one digit
+    if (!hasDigits) {
+        fprintf(stderr, "Lexer Error: Numeric literal must have at least"\
+            " one digit\n");
+        return NULL;
+    }
+
+    size_t len = lexer->pos - startPos;
+    char* num = malloc(len + 1);
+    if (num == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        return NULL;
+    }
+    memcpy(num, lexer->src + startPos, len);
+    num[len] = '\0';
+
+    return num;
 }
 
 static TokenType get_ident_type(const char* ident) {
@@ -360,4 +442,19 @@ static TokenType get_ident_type(const char* ident) {
     if (!strcmp(ident, "false")) return TOK_BOOL_LIT;
 
     return TOK_IDENT;
+}
+
+static TokenType get_num_type(const char* num) {
+    // Check for leading zero
+    if (num[0] == '0' && isdigit(num[1])) {
+        fprintf(stderr, "Lexer Error: Leading zero in numeric literal\n");
+        return TOK_INVALID;
+    }
+
+    // Check for float
+    if (strchr(num, '.') != NULL) {
+        return TOK_FLOAT_LIT;
+    }
+
+    return TOK_INT_LIT;
 }
