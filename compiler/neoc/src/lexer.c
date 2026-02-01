@@ -11,9 +11,10 @@ static char peek(Lexer* lexer, size_t offset);
 static void advance(Lexer* lexer);
 static void skip_whitespace(Lexer* lexer);
 static char* read_identifier(Lexer* lexer);
-static char* read_number(Lexer* lexer);
+static char* read_number(Lexer* lexer, size_t startLine, size_t startColumn);
 static TokenType get_ident_type(const char* ident);
-static TokenType get_num_type(const char* num);
+static TokenType get_num_type(const char* num, size_t startLine,
+    size_t startColumn);
 
 Lexer* create_lexer(char* src) {
     if (src == NULL) {
@@ -62,199 +63,274 @@ Token* get_next_token(Lexer* lexer) {
 
     skip_whitespace(lexer);
 
+    size_t startLine = lexer->line;
+    size_t startColumn = lexer->column;
+
     Token* token = NULL;
     char curChar = peek(lexer, 0);
+
     switch (curChar) {
         // EOF
         case '\0':
-            token = create_token(TOK_EOF, NULL, lexer->line, lexer->column);
+            token = create_token(TOK_EOF, NULL, startLine, startColumn);
+            advance(lexer);
             break;
 
         // Operators
         case '+':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_PLUS_ASSIGN, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_PLUS_ASSIGN, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else if (peek(lexer, 1) == '+') {
+                token = create_token(TOK_INCREMENT, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_INCREMENT, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_ADD, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_ADD, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '-':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_MINUS_ASSIGN, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_MINUS_ASSIGN, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else if (peek(lexer, 1) == '-') {
+                token = create_token(TOK_DECREMENT, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_DECREMENT, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_SUB, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_SUB, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '*':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_MUL_ASSIGN, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_MUL_ASSIGN, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_MUL, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_MUL, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '/':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_DIV_ASSIGN, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_DIV_ASSIGN, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_DIV, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_DIV, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '%':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_MOD_ASSIGN, NULL, startLine,
+                    startColumn);
                 advance(lexer);
-                token = create_token(TOK_MOD_ASSIGN, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_MOD, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_MOD, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '=':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_EQ, NULL, startLine, startColumn);
                 advance(lexer);
-                token = create_token(TOK_EQ, NULL, lexer->line, lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_ASSIGN, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_ASSIGN, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '!':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_NEQ, NULL, startLine, startColumn);
                 advance(lexer);
-                token = create_token(TOK_NEQ, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_NOT, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_NOT, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '<':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_LTE, NULL, startLine, startColumn);
                 advance(lexer);
-                token = create_token(TOK_LTE, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_LT, NULL, lexer->line, lexer->column);
+                token = create_token(TOK_LT, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '>':
             if (peek(lexer, 1) == '=') {
+                token = create_token(TOK_GTE, NULL, startLine, startColumn);
                 advance(lexer);
-                token = create_token(TOK_GTE, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                token = create_token(TOK_GT, NULL, lexer->line,
-                    lexer->column);
+                token = create_token(TOK_GT, NULL, startLine, startColumn);
+                advance(lexer);
             }
             break;
         case '&':
             if (peek(lexer, 1) == '&') {
+                token = create_token(TOK_AND, NULL, startLine, startColumn);
                 advance(lexer);
-                token = create_token(TOK_AND, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                fprintf(stderr, "Lexer Error: Expected '&' got '%c'\n",
-                    peek(lexer, 0));
-                token = create_token(TOK_INVALID, NULL, lexer->line,
-                    lexer->column);
+                fprintf(stderr, "Lexer Error [%zu:%zu]: Expected '&' got "\
+                    "'%c'\n", startLine, startColumn, peek(lexer, 1));
+                token = create_token(TOK_INVALID, NULL, startLine,
+                    startColumn);
+                advance(lexer);
             }
             break;
         case '|':
             if (peek(lexer, 1) == '|') {
+                token = create_token(TOK_OR, NULL, startLine, startColumn);
                 advance(lexer);
-                token = create_token(TOK_OR, NULL, lexer->line,
-                    lexer->column);
+                advance(lexer);
             } else {
-                fprintf(stderr, "Lexer Error: Expected '|' got '%c'\n",
-                    peek(lexer, 0));
-                token = create_token(TOK_INVALID, NULL, lexer->line,
-                    lexer->column);
+                fprintf(stderr, "Lexer Error [%zu:%zu]: Expected '|' after"\
+                    " '|' got '%c'\n", startLine, startColumn, peek(lexer, 1));
+                token = create_token(TOK_INVALID, NULL, startLine,
+                    startColumn);
+                advance(lexer);
             }
             break;
 
         // Punctuation
         case '(':
-            token = create_token(TOK_LPAREN, NULL, lexer->line,
-                lexer->column);
+            token = create_token(TOK_LPAREN, NULL, startLine, startColumn);
+            advance(lexer);
             break;
         case ')':
-            token = create_token(TOK_RPAREN, NULL, lexer->line,
-                lexer->column);
+            token = create_token(TOK_RPAREN, NULL, startLine, startColumn);
+            advance(lexer);
             break;
         case '{':
-            token = create_token(TOK_LBRACE, NULL, lexer->line,
-                lexer->column);
+            token = create_token(TOK_LBRACE, NULL, startLine, startColumn);
+            advance(lexer);
             break;
         case '}':
-            token = create_token(TOK_RBRACE, NULL, lexer->line,
-                lexer->column);
+            token = create_token(TOK_RBRACE, NULL, startLine, startColumn);
+            advance(lexer);
             break;
         case ',':
-            token = create_token(TOK_COMMA, NULL, lexer->line,
-                lexer->column);
+            token = create_token(TOK_COMMA, NULL, startLine, startColumn);
+            advance(lexer);
             break;
         case ';':
-            token = create_token(TOK_SEMICOLON, NULL, lexer->line,
-                lexer->column);
+            token = create_token(TOK_SEMICOLON, NULL, startLine, startColumn);
+            advance(lexer);
             break;
 
         // Character literal
         case '\'':
             advance(lexer);
 
-            if (!isalpha(peek(lexer, 0))) {
-                fprintf(stderr, "Lexer Error: Expected character literal"\
-                    " after '\n");
-                token = create_token(TOK_INVALID, NULL, lexer->line,
-                    lexer->column);
-                return token;
+            char charLit = peek(lexer, 0);
+
+            if (charLit == '\0') {
+                fprintf(stderr, "Lexer Error [%zu:%zu]: Unexpected EOF in"\
+                    " character literal\n", startLine, startColumn);
+                token = create_token(TOK_INVALID, NULL, startLine,
+                    startColumn);
+                break;
+            } else if (charLit == '\'') {
+                fprintf(stderr, "Lexer Error [%zu:%zu]: Empty character"\
+                    " literal\n", startLine, startColumn);
+                token = create_token(TOK_INVALID, NULL, startLine,
+                    startColumn);
+                advance(lexer);
+                break;
+            }
+            // Escape sequence
+            else if (charLit == '\\') {
+                advance(lexer);
+                char escapeChar = peek(lexer, 0);
+
+                if (escapeChar == '\0') {
+                    fprintf(stderr, "Lexer Error [%zu:%zu]: Unexpected EOF in"\
+                        " escape sequence\n", startLine, startColumn);
+                    token = create_token(TOK_INVALID, NULL, startLine,
+                        startColumn);
+                    break;
+                }
+
+                switch (escapeChar) {
+                    case 'n':  charLit = '\n'; break;
+                    case 't':  charLit = '\t'; break;
+                    case 'r':  charLit = '\r'; break;
+                    case '0':  charLit = '\0'; break;
+                    case '\\': charLit = '\\'; break;
+                    case '\'': charLit = '\''; break;
+                    default:
+                        fprintf(stderr, "Lexer Error [%zu:%zu]: Invalid"\
+                            " escape sequence '\\%c'\n", startLine,
+                            startColumn, escapeChar);
+                        token = create_token(TOK_INVALID, NULL, startLine,
+                            startColumn);
+                        // Skip to closing quote or newline for error recovery
+                        while (peek(lexer, 0) != '\'' && peek(lexer, 0) != '\n'
+                            && peek(lexer, 0) != '\0') {
+                            advance(lexer);
+                        }
+                        if (peek(lexer, 0) == '\'') {
+                            advance(lexer);
+                        }
+                        break;
+                }
+
+                if (token == NULL) {
+                    advance(lexer);
+                } else {
+                    break;
+                }
+            } else {
+                advance(lexer);
             }
 
-            char* charLit = malloc(sizeof(char) * 2);
-            if (charLit == NULL) {
+            if (peek(lexer, 0) != '\'') {
+                fprintf(stderr, "Lexer Error [%zu:%zu]: Expected \"'\" after"\
+                    " character literal, got '%c'\n", startLine, startColumn,
+                    peek(lexer, 0));
+                token = create_token(TOK_INVALID, NULL, startLine,
+                    startColumn);
+
+                // Skip until we find a quote or newline
+                while (peek(lexer, 0) != '\'' && peek(lexer, 0) != '\n' &&
+                    peek(lexer, 0) != '\0') {
+                    advance(lexer);
+                }
+                if (peek(lexer, 0) == '\'') {
+                    advance(lexer);
+                }
+                break;
+            }
+
+            advance(lexer);
+
+            char* charIdent = malloc(2);
+            if (charIdent == NULL) {
                 fprintf(stderr, "Error: Memory allocation failed\n");
-                token = create_token(TOK_INVALID, NULL, lexer->line,
-                    lexer->column);
-                return token;
+                return NULL;
             }
-            charLit[0] = peek(lexer, 0);
-            charLit[1] = '\0';
+            charIdent[0] = charLit;
+            charIdent[1] = '\0';
 
-            advance(lexer);
-
-            if (!(peek(lexer, 0) == '\'')) {
-                fprintf(stderr, "Lexer Error: Expected ' after character"\
-                    " literal\n");
-                free(charLit);
-                token = create_token(TOK_INVALID, NULL, lexer->line,
-                    lexer->column);
-                return token;
-            }
-
-            advance(lexer);
-
-            token = create_token(TOK_CHAR_LIT, charLit, lexer->line,
-                lexer->column);
+            token = create_token(TOK_CHAR_LIT, charIdent, startLine,
+                startColumn);
             break;
 
         // Identifiers, keywords, and literals
@@ -263,7 +339,6 @@ Token* get_next_token(Lexer* lexer) {
             if (isalpha(curChar) || curChar == '_') {
                 char* ident = read_identifier(lexer);
                 if (ident == NULL) {
-                    fprintf(stderr, "Error: Failed to read identifier\n");
                     return NULL;
                 }
                 TokenType type = get_ident_type(ident);
@@ -273,33 +348,29 @@ Token* get_next_token(Lexer* lexer) {
                     ident = NULL;
                 }
 
-                token = create_token(type, ident, lexer->line,
-                    lexer->column);
+                token = create_token(type, ident, startLine, startColumn);
                 return token;
             }
             // Numeric Literals
             else if (isdigit(curChar)) {
-                char* num = read_number(lexer);
+                char* num = read_number(lexer, startLine, startColumn);
                 if (num == NULL) {
-                    fprintf(stderr, "Error: Failed to read number\n");
                     return NULL;
                 }
-                TokenType type = get_num_type(num);
+                TokenType type = get_num_type(num, startLine, startColumn);
 
-                token = create_token(type, num, lexer->line,
-                    lexer->column);
+                token = create_token(type, num, startLine, startColumn);
                 return token;
             }
             else {
-                fprintf(stderr, "Lexer Error: Unexpected token '%c'\n",
-                    curChar);
-                token = create_token(TOK_INVALID, NULL, lexer->line,
-                    lexer->column);
+                fprintf(stderr, "Lexer Error [%zu:%zu]: Unexpected token"\
+                    " '%c'\n", startLine, startColumn, curChar);
+                token = create_token(TOK_INVALID, NULL, startLine,
+                    startColumn);
+                advance(lexer);
             }
             break;
     }
-
-    advance(lexer);
 
     return token;
 }
@@ -353,13 +424,17 @@ static void skip_whitespace(Lexer* lexer) {
         }
         // Multiline comments
         else if (curChar == '/' && peek(lexer, 1) == '*') {
+            size_t commentStartLine = lexer->line;
+            size_t commentStartCol = lexer->column;
+
             advance(lexer);
             advance(lexer);
 
             while (true) {
                 if (peek(lexer, 0) == '\0') {
-                    fprintf(stderr, "Lexer Error: Unterminated multiline"\
-                        " comment\n");
+                    fprintf(stderr, "Lexer Error [%zu:%zu]: Unterminated"\
+                        " multiline comment\n", commentStartLine,
+                        commentStartCol);
                     break;
                 }
 
@@ -397,16 +472,12 @@ static char* read_identifier(Lexer* lexer) {
     return ident;
 }
 
-static char* read_number(Lexer* lexer) {
+static char* read_number(Lexer* lexer, size_t startLine, size_t startColumn) {
     size_t startPos = lexer->pos;
-    bool hasDigits = false;
-    bool hasDigitsBeforeDot = false;
     bool hasDigitsAfterDot = false;
 
     // Read integer part
     while (isdigit(peek(lexer, 0))) {
-        hasDigits = true;
-        hasDigitsBeforeDot = true;
         advance(lexer);
     }
 
@@ -416,24 +487,16 @@ static char* read_number(Lexer* lexer) {
 
         // Read fractional part
         while (isdigit(peek(lexer, 0))) {
-            hasDigits = true;
             hasDigitsAfterDot = true;
             advance(lexer);
         }
 
-        // Check for digits on both sides
-        if (!hasDigitsBeforeDot || !hasDigitsAfterDot) {
-            fprintf(stderr, "Lexer Error: Float literal must have digits on"\
-                " both sides of the decimal point\n");
+        // Check for digits after dot
+        if (!hasDigitsAfterDot) {
+            fprintf(stderr, "Lexer Error [%zu:%zu]: Float literal must have"\
+                " digits after decimal point\n", startLine, startColumn);
             return NULL;
         }
-    }
-
-    // Must have at least one digit
-    if (!hasDigits) {
-        fprintf(stderr, "Lexer Error: Numeric literal must have at least"\
-            " one digit\n");
-        return NULL;
     }
 
     size_t len = lexer->pos - startPos;
@@ -453,7 +516,7 @@ static TokenType get_ident_type(const char* ident) {
     // statements however while the syntax is still pretty up in the air
     // keeping it simple cant hurt, makes it easier to edit.
 
-    //Keywords
+    // Keywords
     if (!strcmp(ident, "fn")) return TOK_FN;
     if (!strcmp(ident, "return")) return TOK_RETURN;
     if (!strcmp(ident, "mut")) return TOK_MUT;
@@ -483,10 +546,12 @@ static TokenType get_ident_type(const char* ident) {
     return TOK_IDENT;
 }
 
-static TokenType get_num_type(const char* num) {
+static TokenType get_num_type(const char* num, size_t startLine,
+    size_t startColumn) {
     // Check for leading zero
     if (num[0] == '0' && isdigit(num[1])) {
-        fprintf(stderr, "Lexer Error: Leading zero in numeric literal\n");
+        fprintf(stderr, "Lexer Error [%zu:%zu]: Leading zero in numeric"\
+            " literal\n", startLine, startColumn);
         return TOK_INVALID;
     }
 
