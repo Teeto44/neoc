@@ -82,12 +82,26 @@ typedef enum TokenType {
 } TokenType;
 
 typedef struct Token {
+    /// Type of token.
     TokenType type;
+    /// Null-terminated identifier associated with the token,
+    /// can be NULL.
+    /// For identifiers, this is the name.
+    /// For boolean literals, this is the string "true" or "false".
+    /// For numeric literals, this is the literal.
+    /// For character literals, this is the character.
     char* ident;
+    /// Line number where the token started.
     size_t line;
+    /// Column number where the token started.
     size_t column;
 } Token;
 
+/// Creates a new token, identifier can be NULL but if not, it is
+/// expected to have been allocated by the caller and ownership is
+/// transferred to the token. Call free_token() to free the token and
+/// identifier if necessary. Returns a pointer to the newly created
+/// token, or NULL if memory allocation fails.
 static inline Token* create_token(TokenType type, char* ident,
     size_t line, size_t column) {
     Token* token = malloc(sizeof(Token));
@@ -104,6 +118,7 @@ static inline Token* create_token(TokenType type, char* ident,
     return token;
 }
 
+/// Frees a token and its identifier if it exists.
 static inline void free_token(Token *token) {
     if (token->ident != NULL) {
         free(token->ident);
@@ -113,6 +128,10 @@ static inline void free_token(Token *token) {
     free(token);
 }
 
+/// Simple helper function to convert a token type to a string
+/// representation, useful for debugging and error messages. Returns
+/// a string representation of the token type, or "TOK_UNKNOWN" if the
+/// type is not recognized.
 static inline const char* token_as_str(TokenType type) {
     switch (type) {
         case TOK_INVALID: return "TOK_INVALID";

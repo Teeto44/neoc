@@ -7,12 +7,34 @@
 #include <stdbool.h>
 #include "token.h"
 
-static char peek(Lexer* lexer, size_t offset);
+/// Returns the character a given offset from the current position in
+/// the lexer's current source file. Returns '\0' if the position is
+/// beyond the end of the source code.
+static inline char peek(Lexer* lexer, size_t offset);
+/// Advance the lexer's position by one character.
 static void advance(Lexer* lexer);
+/// Advances the lexer till it finds a non-whitespace and non-comment
+/// character.
 static void skip_whitespace(Lexer* lexer);
+/// Reads an identifier from the source code until a non-alphanumeric
+/// character is encountered, returns a pointer to a null-terminated
+/// copy of the identifier. This needs to be freed by the caller and is
+/// intended to be owned by the token it's passed to. Returns NULL if
+/// memory allocation fails.
 static char* read_identifier(Lexer* lexer);
+/// Reads a numeric literal from the source code until a non-numeric
+/// character is encountered, returns a pointer to a null-terminated
+/// copy of the literal. This needs to be freed by the caller and is
+/// intended to be owned by the token it's passed to. Returns NULL if
+/// the literal is invalid or memory allocation fails.
 static char* read_number(Lexer* lexer, size_t startLine, size_t startColumn);
+/// Checks for keywords in the identifier. If the identifier is a
+/// keyword, returns the corresponding TokenType. Returns TOK_BOOL_LIT
+/// for "true" or "false", or TOK_IDENT for user defined identifiers.
 static TokenType get_ident_type(const char* ident);
+/// Determines if a numeric literal is an integer or a float. Returns
+/// TOK_INT_LIT for integers, TOK_FLOAT_LIT for floating point numbers,
+/// or TOK_INVALID if the literal is invalid.
 static TokenType get_num_type(const char* num, size_t startLine,
     size_t startColumn);
 
@@ -377,7 +399,7 @@ Token* get_next_token(Lexer* lexer) {
 
 /* --- Helper Functions --- */
 
-static char peek(Lexer* lexer, size_t offset) {
+static inline char peek(Lexer* lexer, size_t offset) {
     size_t newPos = lexer->pos + offset;
     if (newPos >= lexer->srcLen) {
         return '\0';
