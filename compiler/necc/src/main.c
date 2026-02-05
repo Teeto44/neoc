@@ -5,25 +5,31 @@
 #include "token.h"
 #include "lexer.h"
 
-#define TEST_SRC "fn main() i32 {\n return 0; \n} //* Comment Test */"
-#define TEST_OPS "+ - * / % ++ -- == != < <= > >= && || ! = += -= *=  \
-                    /= %="
-#define TEST_PUNCT " ( ) { } , ;"
-#define TEST_WORDS "fn return mut if else i8 i16 i32 i64 i128 u8 u16 \
-                        u32 u64 u128 f32 f64 bool char true false word"
-#define TEST_NUM "22000 001 100 222 323 4 5 6 7 8 9 10.0 111.10200323 \
-                    25.0000 24.4.4.0 25 .5 . 5. 5.. .. //*"
-#define TEST_CHAR "'a' 'b' 'c' 'b ' 'bc '' ''c'  "
-
-int main(void) {
-    // Have to create a heap allocated version of our test src code
-    // otherwise it will crash when the lexer tries to free it
-    char* src = malloc(strlen(TEST_CHAR) + 1);
-    if (src == NULL) {
-        fprintf(stderr, "Error: Memory allocation failed\n");
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <input_file>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    strcpy(src, TEST_CHAR);
+
+    FILE* input_file = fopen(argv[1], "r");
+    if (input_file == NULL) {
+        fprintf(stderr, "Error: Failed to open input file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(input_file, 0, SEEK_END);
+    size_t file_size = ftell(input_file);
+    fseek(input_file, 0, SEEK_SET);
+
+    char* src = malloc(file_size + 1);
+    if (src == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        fclose(input_file);
+        exit(EXIT_FAILURE);
+    }
+    fread(src, 1, file_size, input_file);
+    src[file_size] = '\0';
+    fclose(input_file);
 
     Lexer* lexer = create_lexer(src);
     if (lexer == NULL) {
@@ -36,6 +42,7 @@ int main(void) {
         Token* token = get_next_token(lexer);
         if (token == NULL) {
             fprintf(stderr, "Error: Token is NULL\n");
+            destroy_lexer(lexer);
             exit(EXIT_FAILURE);
         }
 
