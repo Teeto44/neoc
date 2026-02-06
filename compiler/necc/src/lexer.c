@@ -1,11 +1,9 @@
 #include "lexer.h"
 #include <ctype.h>
-#include <stddef.h>
-#include <string.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include "token.h"
+#include <string.h>
 
 /// Returns the character a given offset from the current position in
 /// the lexer's current source file. Returns '\0' if the position is

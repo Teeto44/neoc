@@ -1,4 +1,6 @@
 #include "parser.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 Parser* create_parser(char* src) {
     Parser* parser = malloc(sizeof(Parser));
