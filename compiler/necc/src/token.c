@@ -18,12 +18,11 @@ Token* create_token(TokenType type, char* ident, size_t line, size_t column) {
 }
 
 void free_token(Token *token) {
-    if (token->ident == NULL) {
-    } else {
-        free(token->ident);
-        token->ident = NULL;
+    if (token == NULL) {
+        return;
     }
 
+    free(token->ident);
     free(token);
 }
 
@@ -92,5 +91,85 @@ const char* token_as_str(TokenType type) {
         case TOK_IDENT: return "TOK_IDENT";
         case TOK_EOF: return "TOK_EOF";
         default: return "TOK_UNKNOWN";
+    }
+}
+bool token_is_type(TokenType type) {
+    switch (type) {
+        case TOK_I8:
+        case TOK_I16:
+        case TOK_I32:
+        case TOK_I64:
+        case TOK_I128:
+        case TOK_U8:
+        case TOK_U16:
+        case TOK_U32:
+        case TOK_U64:
+        case TOK_U128:
+        case TOK_F32:
+        case TOK_F64:
+        case TOK_BOOL:
+        case TOK_CHAR:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool token_is_bin_op(TokenType type) {
+    switch (type) {
+        case TOK_ADD:
+        case TOK_SUB:
+        case TOK_MUL:
+        case TOK_DIV:
+        case TOK_MOD:
+        case TOK_EQ:
+        case TOK_NEQ:
+        case TOK_LT:
+        case TOK_LTE:
+        case TOK_GT:
+        case TOK_GTE:
+        case TOK_AND:
+        case TOK_OR:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool token_is_un_op(TokenType type) {
+    switch (type) {
+        case TOK_SUB:
+        case TOK_INCREMENT:
+        case TOK_DECREMENT:
+        case TOK_NOT:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool token_is_assign_op(TokenType type) {
+    switch (type) {
+        case TOK_ASSIGN:
+        case TOK_PLUS_ASSIGN:
+        case TOK_MINUS_ASSIGN:
+        case TOK_MUL_ASSIGN:
+        case TOK_DIV_ASSIGN:
+        case TOK_MOD_ASSIGN:
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool token_is_literal(TokenType type) {
+    switch (type) {
+        case TOK_INT_LIT:
+        case TOK_FLOAT_LIT:
+        case TOK_BOOL_LIT:
+        case TOK_CHAR_LIT:
+            return true;
+        default:
+            return false;
     }
 }

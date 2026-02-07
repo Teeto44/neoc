@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 typedef enum TokenType {
     // Default
@@ -108,5 +109,15 @@ void free_token(Token *token);
 /// a string representation of the token type, or "TOK_UNKNOWN" if the
 /// type is not recognized.
 const char* token_as_str(TokenType type);
+/// Returns true if the token type is a type.
+bool token_is_type(TokenType type);
+/// Returns true if the token type is a binary operator.
+bool token_is_bin_op(TokenType type);
+/// Returns true if the token type is a unary operator.
+bool token_is_un_op(TokenType type);
+/// Returns true if the token type is an assignment operator.
+bool token_is_assign_op(TokenType type);
+/// Returns true if the token type is a literal.
+bool token_is_literal(TokenType type);
 
 #endif // TOKEN_H

@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "token.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,8 +40,14 @@ ASTNode* create_file_node(size_t line, size_t column, ASTNode** stmts,
     return node;
 }
 
-ASTNode* create_function_decl_node(size_t line, size_t column, const char* name,
-    ASTNode** params, size_t paramCount, TokenType returnType, ASTNode* body) {
+ASTNode* create_function_decl_node(size_t line, size_t column,
+    const char* name, ASTNode** params, size_t paramCount,
+    TokenType returnType, ASTNode* body) {
+    if (!token_is_type(returnType)) {
+        fprintf(stderr, "Error: Invalid return type\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_FUNCTION_DECL);
     CREATE_STR_COPY(name);
 
@@ -52,8 +59,13 @@ ASTNode* create_function_decl_node(size_t line, size_t column, const char* name,
     return node;
 }
 
-ASTNode* create_variable_decl_node(size_t line, size_t column, const char* name,
-    TokenType type, bool mutable, ASTNode* initializer) {
+ASTNode* create_variable_decl_node(size_t line, size_t column,
+    const char* name, TokenType type, bool mutable, ASTNode* initializer) {
+    if (!token_is_type(type)) {
+        fprintf(stderr, "Error: Invalid declaration type\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_VARIABLE_DECL);
     CREATE_STR_COPY(name);
 
@@ -64,8 +76,13 @@ ASTNode* create_variable_decl_node(size_t line, size_t column, const char* name,
     return node;
 }
 
-ASTNode* create_parameter_decl_node(size_t line, size_t column, const char* name,
-    TokenType type) {
+ASTNode* create_parameter_decl_node(size_t line, size_t column,
+    const char* name, TokenType type) {
+    if (!token_is_type(type)) {
+        fprintf(stderr, "Error: Invalid parameter type\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_PARAMETER_DECL);
     CREATE_STR_COPY(name);
 
@@ -109,6 +126,11 @@ ASTNode* create_expr_stmt_node(size_t line, size_t column, ASTNode* expr) {
 
 ASTNode* create_binary_expr_node(size_t line, size_t column, TokenType op,
     ASTNode* left, ASTNode* right) {
+    if (!token_is_bin_op(op)) {
+        fprintf(stderr, "Error: Invalid binary operator\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_BINARY_EXPR);
 
     node->data.binaryExpr.op = op;
@@ -119,6 +141,11 @@ ASTNode* create_binary_expr_node(size_t line, size_t column, TokenType op,
 
 ASTNode* create_unary_expr_node(size_t line, size_t column, TokenType op,
     ASTNode* operand, bool isPostfix) {
+    if (!token_is_un_op(op)) {
+        fprintf(stderr, "Error: Invalid unary operator\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_UNARY_EXPR);
 
     node->data.unaryExpr.op = op;
@@ -139,6 +166,11 @@ ASTNode* create_call_expr_node(size_t line, size_t column, ASTNode* callee,
 
 ASTNode* create_assign_expr_node(size_t line, size_t column, ASTNode* target,
     TokenType op, ASTNode* value) {
+    if (!token_is_assign_op(op)) {
+        fprintf(stderr, "Error: Invalid assignment operator\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_ASSIGN_EXPR);
 
     node->data.assignExpr.target = target;
@@ -149,6 +181,11 @@ ASTNode* create_assign_expr_node(size_t line, size_t column, ASTNode* target,
 
 ASTNode* create_cast_expr_node(size_t line, size_t column, TokenType type,
     ASTNode* expr) {
+    if (!token_is_type(type)) {
+        fprintf(stderr, "Error: Invalid cast type\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_CAST_EXPR);
 
     node->data.castExpr.type = type;
@@ -166,6 +203,11 @@ ASTNode* create_ident_node(size_t line, size_t column, const char* name) {
 
 ASTNode* create_literal_node(size_t line, size_t column, TokenType type,
     const char* value) {
+    if (!token_is_literal(type)) {
+        fprintf(stderr, "Error: Invalid literal type\n");
+        return NULL;
+    }
+
     CREATE_NODE(NODE_LITERAL);
     CREATE_STR_COPY(value);
 
@@ -193,7 +235,8 @@ void free_ast_node(ASTNode* node) {
                 free(node->data.functionDecl.name);
             }
             if (node->data.functionDecl.params != NULL) {
-                for (size_t i = 0; i < node->data.functionDecl.paramCount; i++) {
+                for (size_t i = 0; i < node->data.functionDecl.paramCount;
+                    i++) {
                     free_ast_node(node->data.functionDecl.params[i]);
                 }
                 free(node->data.functionDecl.params);
