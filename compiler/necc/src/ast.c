@@ -175,7 +175,101 @@ ASTNode* create_literal_node(size_t line, size_t column, TokenType type,
 }
 
 void free_ast_node(ASTNode* node) {
-    return;
+    if (node == NULL) {
+        return;
+    }
+
+    switch (node->type) {
+        case NODE_FILE:
+            if (node->data.file.stmts != NULL) {
+                for (size_t i = 0; i < node->data.file.stmtCount; i++) {
+                    free_ast_node(node->data.file.stmts[i]);
+                }
+                free(node->data.file.stmts);
+            }
+            break;
+        case NODE_FUNCTION_DECL:
+            if (node->data.functionDecl.name != NULL) {
+                free(node->data.functionDecl.name);
+            }
+            if (node->data.functionDecl.params != NULL) {
+                for (size_t i = 0; i < node->data.functionDecl.paramCount; i++) {
+                    free_ast_node(node->data.functionDecl.params[i]);
+                }
+                free(node->data.functionDecl.params);
+            }
+            free_ast_node(node->data.functionDecl.body);
+            break;
+        case NODE_VARIABLE_DECL:
+            if (node->data.variableDecl.name != NULL) {
+                free(node->data.variableDecl.name);
+            }
+            free_ast_node(node->data.variableDecl.initializer);
+            break;
+        case NODE_PARAMETER_DECL:
+            if (node->data.parameterDecl.name != NULL) {
+                free(node->data.parameterDecl.name);
+            }
+            break;
+        case NODE_BLOCK_STMT:
+            if (node->data.blockStmt.stmts != NULL) {
+                for (size_t i = 0; i < node->data.blockStmt.stmtCount; i++) {
+                    free_ast_node(node->data.blockStmt.stmts[i]);
+                }
+                free(node->data.blockStmt.stmts);
+            }
+            break;
+        case NODE_RETURN_STMT:
+            free_ast_node(node->data.returnStmt.expr);
+            break;
+        case NODE_IF_STMT:
+            free_ast_node(node->data.ifStmt.condition);
+            free_ast_node(node->data.ifStmt.thenBranch);
+            free_ast_node(node->data.ifStmt.elseBranch);
+            break;
+        case NODE_EXPR_STMT:
+            free_ast_node(node->data.exprStmt.expr);
+            break;
+        case NODE_BINARY_EXPR:
+            free_ast_node(node->data.binaryExpr.left);
+            free_ast_node(node->data.binaryExpr.right);
+            break;
+        case NODE_UNARY_EXPR:
+            free_ast_node(node->data.unaryExpr.operand);
+            break;
+        case NODE_CALL_EXPR:
+            free_ast_node(node->data.callExpr.callee);
+            if (node->data.callExpr.args != NULL) {
+                for (size_t i = 0; i < node->data.callExpr.argCount; i++) {
+                    free_ast_node(node->data.callExpr.args[i]);
+                }
+                free(node->data.callExpr.args);
+            }
+            break;
+        case NODE_ASSIGN_EXPR:
+            free_ast_node(node->data.assignExpr.target);
+            free_ast_node(node->data.assignExpr.value);
+            break;
+        case NODE_CAST_EXPR:
+            free_ast_node(node->data.castExpr.expr);
+            break;
+        case NODE_IDENT:
+            if (node->data.ident.name != NULL) {
+                free(node->data.ident.name);
+            }
+            break;
+        case NODE_LITERAL:
+            if (node->data.literal.value != NULL) {
+                free(node->data.literal.value);
+            }
+            break;
+        default:
+            fprintf(stderr, "Warning: Unknown node type %d attempted to be"\
+                " freed\n", node->type);
+            break;
+    }
+
+    free(node);
 }
 
 void print_ast_node(ASTNode* node, int indent);
