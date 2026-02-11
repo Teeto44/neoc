@@ -31,10 +31,16 @@
     memcpy(strCpy, str, len); \
     strCpy[len] = '\0';
 
-ASTNode* create_file_node(size_t line, size_t column, ASTNode** stmts,
-    size_t stmtCount) {
-    CREATE_NODE(NODE_FILE);
+ASTNode* create_file_node(ASTNode** stmts, size_t stmtCount) {
+    ASTNode* node = malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed for node\n");
+        return NULL;
+    }
 
+    node->type = NODE_FILE;
+    node->line = 1;
+    node->column = 1;
     node->data.file.stmts = stmts;
     node->data.file.stmtCount = stmtCount;
     return node;
@@ -315,4 +321,251 @@ void free_ast_node(ASTNode* node) {
     free(node);
 }
 
-void print_ast_node(ASTNode* node, int indent);
+static void print_indent(int indent) {
+    if (indent < 0) {
+        indent = 0;
+    }
+
+    for (int i = 0; i < indent; i++) {
+        printf("  ");
+    }
+}
+
+void print_ast_node(ASTNode* node, int indent) {
+    if (node == NULL) {
+        print_indent(indent);
+        printf("(null)\n");
+        return;
+    }
+
+    print_indent(indent);
+
+    switch (node->type) {
+        case NODE_FILE:
+            printf("File\n");
+            if (node->data.file.stmts != NULL) {
+                for (size_t i = 0; i < node->data.file.stmtCount; i++) {
+                    print_ast_node(node->data.file.stmts[i], indent + 1);
+                }
+            }
+            break;
+        case NODE_FUNCTION_DECL:
+            printf("Function(%zu:%zu) name:'", node->line, node->column);
+
+            if (node->data.functionDecl.name != NULL) {
+                printf("%s'", node->data.functionDecl.name);
+            } else {
+                printf("(null)'");
+            }
+
+            if (node->data.functionDecl.returnType != TOK_INVALID) {
+                printf(" returns:%s\n",
+                    token_as_str(node->data.functionDecl.returnType));
+            }
+
+            if (node->data.functionDecl.params != NULL) {
+                print_indent(indent + 1);
+                printf("Parameters:\n");
+                for (size_t i = 0; i < node->data.functionDecl.paramCount;
+                    i++) {
+                    print_ast_node(node->data.functionDecl.params[i],
+                        indent + 2);
+                }
+            }
+
+            if (node->data.functionDecl.body != NULL) {
+                print_indent(indent + 1);
+                printf("Body:\n");
+                print_ast_node(node->data.functionDecl.body, indent + 2);
+            }
+
+            break;
+        case NODE_VARIABLE_DECL:
+            printf("VariableDecl(%zu:%zu) name:'", node->line, node->column);
+
+            if (node->data.variableDecl.name != NULL) {
+                printf("%s'", node->data.variableDecl.name);
+            } else {
+                printf("(null)'");
+            }
+
+            printf(" type:%s mutable:",
+                token_as_str(node->data.variableDecl.type));
+
+            if (node->data.variableDecl.mutable) {
+                printf("true\n");
+            } else {
+                printf("false\n");
+            }
+
+            if (node->data.variableDecl.initializer != NULL) {
+                print_indent(indent + 1);
+                printf("Initializer:\n");
+                print_ast_node(node->data.variableDecl.initializer,
+                    indent + 2);
+            }
+
+            break;
+        case NODE_PARAMETER_DECL:
+            printf("ParameterDecl(%zu:%zu) name:'", node->line, node->column);
+
+            if (node->data.parameterDecl.name != NULL) {
+                printf("%s'", node->data.parameterDecl.name);
+            } else {
+                printf("(null)'");
+            }
+
+            printf(" type:%s\n", token_as_str(node->data.parameterDecl.type));
+
+            break;
+        case NODE_BLOCK_STMT:
+            printf("BlockStmt(%zu:%zu)\n", node->line, node->column);
+
+            if (node->data.blockStmt.stmts != NULL) {
+                for (size_t i = 0; i < node->data.blockStmt.stmtCount; i++) {
+                    print_ast_node(node->data.blockStmt.stmts[i], indent + 1);
+                }
+            }
+
+            break;
+        case NODE_RETURN_STMT:
+            printf("ReturnStmt(%zu:%zu)\n", node->line, node->column);
+
+            if (node->data.returnStmt.expr != NULL) {
+                print_ast_node(node->data.returnStmt.expr, indent + 1);
+            }
+
+            break;
+        case NODE_IF_STMT:
+            printf("IfStmt(%zu:%zu)\n", node->line, node->column);
+
+            if (node->data.ifStmt.condition != NULL) {
+                print_indent(indent + 1);
+                printf("Condition:\n");
+                print_ast_node(node->data.ifStmt.condition, indent + 2);
+            }
+
+            if (node->data.ifStmt.thenBranch != NULL) {
+                print_indent(indent + 1);
+                printf("Then:\n");
+                print_ast_node(node->data.ifStmt.thenBranch, indent + 2);
+            }
+
+            if (node->data.ifStmt.elseBranch != NULL) {
+                print_indent(indent + 1);
+                printf("Else:\n");
+                print_ast_node(node->data.ifStmt.elseBranch, indent + 2);
+            }
+
+            break;
+        case NODE_EXPR_STMT:
+            printf("ExprStmt(%zu:%zu)\n", node->line, node->column);
+
+            if (node->data.exprStmt.expr != NULL) {
+                print_ast_node(node->data.exprStmt.expr, indent + 1);
+            }
+
+            break;
+        case NODE_BINARY_EXPR:
+            printf("BinaryExpr(%zu:%zu) op:%s\n", node->line, node->column,
+                token_as_str(node->data.binaryExpr.op));
+
+            if (node->data.binaryExpr.left != NULL) {
+                print_indent(indent + 1);
+                printf("Left:\n");
+                print_ast_node(node->data.binaryExpr.left, indent + 2);
+            }
+
+            if (node->data.binaryExpr.right != NULL) {
+                print_indent(indent + 1);
+                printf("Right:\n");
+                print_ast_node(node->data.binaryExpr.right, indent + 2);
+            }
+
+            break;
+        case NODE_UNARY_EXPR:
+            printf("UnaryExpr(%zu:%zu) op:%s postfix:", node->line,
+                node->column, token_as_str(node->data.unaryExpr.op));
+
+            if (node->data.unaryExpr.isPostfix) {
+                printf("true\n");
+            } else {
+                printf("false\n");
+            }
+
+            if (node->data.unaryExpr.operand != NULL) {
+                print_ast_node(node->data.unaryExpr.operand, indent + 1);
+            }
+
+            break;
+        case NODE_CALL_EXPR:
+            printf("CallExpr(%zu:%zu)\n", node->line, node->column);
+
+            if (node->data.callExpr.callee != NULL) {
+                print_indent(indent + 1);
+                printf("Callee:\n");
+                print_ast_node(node->data.callExpr.callee, indent + 2);
+            }
+
+            if (node->data.callExpr.args != NULL) {
+                print_indent(indent + 1);
+                printf("Arguments:\n");
+                for (size_t i = 0; i < node->data.callExpr.argCount; i++) {
+                    print_ast_node(node->data.callExpr.args[i], indent + 2);
+                }
+            }
+
+            break;
+        case NODE_ASSIGN_EXPR:
+            printf("AssignExpr(%zu:%zu) op:%s\n", node->line, node->column,
+                token_as_str(node->data.assignExpr.op));
+
+            if (node->data.assignExpr.target != NULL) {
+                print_indent(indent + 1);
+                printf("Target:\n");
+                print_ast_node(node->data.assignExpr.target, indent + 2);
+            }
+
+            if (node->data.assignExpr.value != NULL) {
+                print_indent(indent + 1);
+                printf("Value:\n");
+                print_ast_node(node->data.assignExpr.value, indent + 2);
+            }
+
+            break;
+        case NODE_CAST_EXPR:
+            printf("CastExpr(%zu:%zu) type:%s\n", node->line, node->column,
+                token_as_str(node->data.castExpr.type));
+
+            if (node->data.castExpr.expr != NULL) {
+                print_ast_node(node->data.castExpr.expr, indent + 1);
+            }
+
+            break;
+        case NODE_IDENT:
+            printf("Ident(%zu:%zu) name:'", node->line, node->column);
+
+            if (node->data.ident.name != NULL) {
+                printf("%s'\n", node->data.ident.name);
+            } else {
+                printf("(null)'\n");
+            }
+
+            break;
+        case NODE_LITERAL:
+            printf("Literal(%zu:%zu) type:%s value:'", node->line,
+                node->column, token_as_str(node->data.literal.type));
+
+            if (node->data.literal.value != NULL) {
+                printf("%s'\n", node->data.literal.value);
+            } else {
+                printf("(null)'\n");
+            }
+
+            break;
+        default:
+            printf("Unknown node type %d (%zu:%zu)\n", node->type, node->line,
+                node->column);
+            break;
+    }
+}

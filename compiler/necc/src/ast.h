@@ -139,14 +139,14 @@ struct ASTNode {
     } data;
 };
 
-ASTNode* create_file_node(size_t line, size_t column, ASTNode** stmts,
-    size_t stmtCount);
-ASTNode* create_function_decl_node(size_t line, size_t column, const char* name,
-    ASTNode** params, size_t paramCount, TokenType returnType, ASTNode* body);
-ASTNode* create_variable_decl_node(size_t line, size_t column, const char* name,
-    TokenType type, bool mutable, ASTNode* initializer);
-ASTNode* create_parameter_decl_node(size_t line, size_t column, const char* name,
-    TokenType type);
+ASTNode* create_file_node(ASTNode** stmts, size_t stmtCount);
+ASTNode* create_function_decl_node(size_t line, size_t column,
+    const char* name, ASTNode** params, size_t paramCount,
+    TokenType returnType, ASTNode* body);
+ASTNode* create_variable_decl_node(size_t line, size_t column,
+    const char* name, TokenType type, bool mutable, ASTNode* initializer);
+ASTNode* create_parameter_decl_node(size_t line, size_t column,
+    const char* name, TokenType type);
 ASTNode* create_block_stmt_node(size_t line, size_t column, ASTNode** stmts,
     size_t stmtCount);
 ASTNode* create_return_stmt_node(size_t line, size_t column, ASTNode* expr);

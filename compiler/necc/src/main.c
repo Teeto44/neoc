@@ -1,10 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "lexer.h"
+#include "ast.h"
 #include "token.h"
 
-int main(int argc, char* argv[]) {
+int main(void/*int argc, char* argv[]*/) {
+    /*
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <input_file>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -29,37 +30,25 @@ int main(int argc, char* argv[]) {
     fread(src, 1, file_size, input_file);
     src[file_size] = '\0';
     fclose(input_file);
+    free(src);
+    */
 
-    Lexer* lexer = create_lexer(src);
-    if (lexer == NULL) {
-        fprintf(stderr, "Error: Lexer creation failed\n");
-        free(src);
-        exit(EXIT_FAILURE);
-    }
+    // Create an example AST for testing
+    ASTNode* num1 = create_literal_node(10, 9, TOK_INT_LIT, "42");
+    ASTNode* num2 = create_literal_node(10, 9, TOK_INT_LIT, "20");
+    ASTNode* add_expr = create_binary_expr_node(10, 9, TOK_ADD, num1, num2);
+    ASTNode* var_decl = create_variable_decl_node(10, 10, "my_var", TOK_I32,
+        false, add_expr);
+    ASTNode* body = create_block_stmt_node(10, 10, &var_decl, 1);
+    ASTNode* argcDecl = create_parameter_decl_node(100, 200, "argc", TOK_I32);
+    ASTNode* func_decl = create_function_decl_node(10, 10, "main", &argcDecl,
+        1, TOK_I32, body);
+    ASTNode* file_node = create_file_node(&func_decl, 1);
 
-    while (true) {
-        Token* token = get_next_token(lexer);
-        if (token == NULL) {
-            fprintf(stderr, "Error: Token is NULL\n");
-            destroy_lexer(lexer);
-            exit(EXIT_FAILURE);
-        }
+    print_ast_node(file_node, 0);
 
-        printf("%s", token_as_str(token->type));
-        if (token->ident != NULL) {
-            printf(" (%s)", token->ident);
-        }
-        printf("\n");
-
-        if (token->type == TOK_EOF ) {
-            free_token(token);
-            break;
-        }
-
-        free_token(token);
-    }
-
-    destroy_lexer(lexer);
-
+    // This errors at runtime because the hardcoded identifier's are
+    // not on the heap, but its ok for testing purposes
+    free_ast_node(file_node);
     return 0;
 }
