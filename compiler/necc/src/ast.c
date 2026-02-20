@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/// Helper macro for allocating memory for AST nodes. Returns NULL on
+/// failure.
 #define CREATE_NODE(nodeType) \
     ASTNode* node = malloc(sizeof(ASTNode)); \
     if (node == NULL) { \
@@ -14,6 +16,8 @@
     node->line = line; \
     node->column = column;
 
+/// Helper macro for allocating memory for string copies and copying
+/// strings for AST nodes that have idents.
 #define CREATE_STR_COPY(str) \
     if (str == NULL) { \
         fprintf(stderr, "Error: String passed to node cannot" \
@@ -49,7 +53,7 @@ ASTNode* create_file_node(ASTNode** stmts, size_t stmtCount) {
 ASTNode* create_function_decl_node(size_t line, size_t column,
     const char* name, ASTNode** params, size_t paramCount,
     TokenType returnType, ASTNode* body) {
-    if (!token_is_type(returnType)) {
+    if (!token_is_type(returnType) && returnType != TOK_INVALID) {
         fprintf(stderr, "Error: Invalid return type\n");
         return NULL;
     }
@@ -321,6 +325,7 @@ void free_ast_node(ASTNode* node) {
     free(node);
 }
 
+/// Simple helper function to print indentation for AST nodes.
 static void print_indent(int indent) {
     if (indent < 0) {
         indent = 0;

@@ -32,14 +32,18 @@ void destroy_parser(Parser* parser) {
     free(parser);
 }
 
-void parse_program(Parser* parser) {
+ASTNode* parse_program(Parser* parser) {
     if (parser == NULL) {
         fprintf(stderr, "Error: Parser is NULL\n");
-        return;
+        return NULL;
     }
 
     if (parser->lexer == NULL) {
         fprintf(stderr, "Error: Parser is uninitialized\n");
-        return;
+        return NULL;
     }
+
+    // Parse program here
+
+    return NULL;
 }

@@ -102,7 +102,7 @@ typedef struct Token {
 /// identifier if necessary. Returns a pointer to the newly created
 /// token, or NULL if memory allocation fails.
 Token* create_token(TokenType type, char* ident, size_t line, size_t column);
-/// Frees a token and its identifier if it exists.
+/// Frees a token and its identifier if it exists. Safely handles NULL.
 void free_token(Token *token);
 /// Simple helper function to convert a token type to a string
 /// representation, useful for debugging and error messages. Returns

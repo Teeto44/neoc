@@ -9,7 +9,9 @@
 /// the lexer's current source file. Returns '\0' if the position is
 /// beyond the end of the source code.
 static inline char peek(Lexer* lexer, size_t offset);
-/// Advance the lexer's position by one character.
+/// Advances the lexer's position by one character, updating the line
+/// and column tracking accordingly. Stops without advancing if the
+/// current character is '\0' (end of source).
 static void advance(Lexer* lexer);
 /// Advances the lexer till it finds a non-whitespace and non-comment
 /// character.
@@ -26,9 +28,10 @@ static char* read_identifier(Lexer* lexer);
 /// intended to be owned by the token it's passed to. Returns NULL if
 /// the literal is invalid or memory allocation fails.
 static char* read_number(Lexer* lexer, size_t startLine, size_t startColumn);
-/// Checks for keywords in the identifier. If the identifier is a
-/// keyword, returns the corresponding TokenType. Returns TOK_BOOL_LIT
-/// for "true" or "false", or TOK_IDENT for user defined identifiers.
+/// Checks whether the identifier matches a reserved keyword, type name,
+/// or boolean literal. Returns the corresponding keyword or type
+/// TokenType if matched, TOK_BOOL_LIT for "true" or "false", or
+/// TOK_IDENT for user defined identifiers.
 static TokenType get_ident_type(const char* ident);
 /// Determines if a numeric literal is an integer or a float. Returns
 /// TOK_INT_LIT for integers, TOK_FLOAT_LIT for floating point numbers,

@@ -22,7 +22,8 @@ typedef struct Lexer {
 /// newly created lexer, or NULL if src is not valid or memory
 /// allocation fails.
 Lexer* create_lexer(char* src);
-/// Frees the memory allocated for the lexer.
+/// Frees the memory allocated for the lexer, including the owned source
+/// string. Safely handles NULL.
 void destroy_lexer(Lexer* lexer);
 /// Returns a pointer to the next token in the source code. This needs
 /// to be freed by the caller. Returns NULL if lexer is not valid or
